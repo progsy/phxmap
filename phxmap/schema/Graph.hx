@@ -14,50 +14,45 @@ class Graph {
 		return groups.get(name);
 	}
 
-	@:generic public function find<T:Definition>(cls:Class<T>):Null<T> {
+	@:generic public function find<T:Definition>(cls:Class<T>, ?filter:(T) -> Bool):T {
 		var definition:T = null;
-		for (d in definitions) {
-			var td = Std.downcast(d, cls);
-			if (td != null) {
-				definition = td;
-				break;
-			}
-		}
-		return definition;
-	}
-
-	@:generic public function findGuarded<T:Definition>(cls:Class<T>, guard:(T) -> Bool):Null<T> {
-		var definition:T = null;
-		for (d in definitions) {
-			var tsc = Std.downcast(d, cls);
-			if (tsc != null) {
-				if (guard(tsc)) {
-					definition = tsc;
+		if (filter == null) {
+			for (d in definitions) {
+				var td = Std.downcast(d, cls);
+				if (td != null) {
+					definition = td;
 					break;
+				}
+			}
+		} else {
+			for (d in definitions) {
+				var td = Std.downcast(d, cls);
+				if (td != null) {
+					if (filter(td)) {
+						definition = td;
+					}
 				}
 			}
 		}
 		return definition;
 	}
 
-	@:generic public function findAll<T:Definition>(cls:Class<T>, ?base:Array<T>):Array<T> {
+	@:generic public function findAll<T:Definition>(cls:Class<T>, ?filter:(T) -> Bool, ?base:Array<T>):Array<T> {
 		var array = base ?? [];
-		for (d in definitions) {
-			var td = Std.downcast(d, cls);
-			if (td != null) {
-				array.push(td);
-			}
-		}
-		return array;
-	}
-
-	@:generic public function findAllGuarded<T:Definition>(cls:Class<T>, guard:(T) -> Bool, ?base:Array<T>):Array<T> {
-		var array = base ?? [];
-		for (d in definitions) {
-			var td = Std.downcast(d, cls);
-			if (td != null) {
-				if (guard(td)) {
+		if (filter == null) {
+			for (d in definitions) {
+				var td = Std.downcast(d, cls);
+				if (td != null) {
 					array.push(td);
+				}
+			}
+		} else {
+			for (d in definitions) {
+				var td = Std.downcast(d, cls);
+				if (td != null) {
+					if (filter(td)) {
+						array.push(td);
+					}
 				}
 			}
 		}
