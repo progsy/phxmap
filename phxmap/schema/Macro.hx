@@ -77,7 +77,7 @@ class FGD {
 					var className:String;
 					var classColor:String;
 					var classSize:String;
-					var classStandard:Bool;
+					var classHide:Bool;
 					for (m in t.meta.get()) {
 						if (m.name == ":name" && m.params.length > 0) {
 							className = m.params[0].getValue();
@@ -88,12 +88,12 @@ class FGD {
 								for (i in 0...m.params.length)
 									i != 2 ? m.params[i].toString() : m.params[i].toString() + ","
 							].join(' ');
-						} else if (m.name == "standard") {
-							classStandard = true;
+						} else if (m.name == "hide") {
+							classHide = true;
 						}
 					}
 
-					if (classStandard) {
+					if (classHide) {
 						continue;
 					}
 
@@ -106,14 +106,18 @@ class FGD {
 						for (f in ct.fields.get()) {
 							var fgdName:String = f.name;
 							var marked = false;
+							var hide = false;
 							for (m in f.meta.get()) {
 								if (m.name == ":p") {
 									marked = true;
 								} else if (m.name == ":n") {
 									fgdName = m.params[0].getValue();
 								}
+								else if(m.name == ":h") {
+									hide = true;
+								}
 							}
-							if (!marked) {
+							if (!marked || hide) {
 								continue;
 							}
 

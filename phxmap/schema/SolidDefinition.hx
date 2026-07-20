@@ -10,7 +10,7 @@ typedef Geometry = {
 	#end
 };
 
-@:solid @:standard
+@:solid @:hide
 class SolidDefinition implements Definition {
 	public static inline final DEFAULT_TAG:String = "default";
 

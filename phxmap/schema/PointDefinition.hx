@@ -1,6 +1,6 @@
 package phxmap.schema;
 
-@:point @:standard
+@:point @:hide
 class PointDefinition implements Definition {
 	public var id:Int;
 	public var group:GroupDefinition;
