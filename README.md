@@ -11,7 +11,7 @@ package entity.definitions;
 
 enum Ability {
 	Immune;
-	InifiniteAmmo;
+	InfiniteAmmo;
 	SpeedBoost;
 }
 
@@ -54,7 +54,7 @@ This outputs the following FGD:
 	abilities(Flags) =
 	[
 		4: "SpeedBoost": 0
-		2: "InifiniteAmmo": 0
+		2: "InfiniteAmmo": 0
 		1: "Immune": 0
 	]
 ]
