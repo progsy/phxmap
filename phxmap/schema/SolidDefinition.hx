@@ -3,12 +3,13 @@ package phxmap.schema;
 typedef Geometry = {
 	#if heaps
 	positions:Array<hxd.impl.Float32>, uvs:Array<hxd.impl.Float32>, normals:Array<hxd.impl.Float32>, tangents:Array<hxd.impl.Float32>,
-	indices:Array<hxd.impl.UInt16>
+	indices:Array<hxd.impl.UInt16>,
 	#elseif kha
-	positions:Array<kha.FastFloat>, uvs:Array<kha.FastFloat>, normals:Array<kha.FastFloat>, tangents:Array<kha.FastFloat>, indices:Array<Int>
+	positions:Array<kha.FastFloat>, uvs:Array<kha.FastFloat>, normals:Array<kha.FastFloat>, tangents:Array<kha.FastFloat>, indices:Array<Int>,
 	#else
-	positions:Array<Float>, uvs:Array<Float>, normals:Array<Float>, tangents:Array<Float>, indices:Array<Int>
+	positions:Array<Float>, uvs:Array<Float>, normals:Array<Float>, tangents:Array<Float>, indices:Array<Int>,
 	#end
+	textureSet:Int // when the N-th bit is set to 1, it means this geometry uses texture index N from textureNames
 };
 
 @:solid @:hide
@@ -27,6 +28,8 @@ class SolidDefinition implements Definition {
 		Use **phxmap.SolidDefinition.DEFAULT_TAG** to fetch the default geometry.
 	**/
 	public var geometries(default, null):Map<String, Geometry> = [];
+
+	public var textureNames(default, null):Array<String> = [];
 
 	function new() {}
 
@@ -47,6 +50,11 @@ class SolidDefinition implements Definition {
 			for (k in 0...brush.faces.length) {
 				var geo = mapData.entitiesGeo[i][j][k];
 				var tags = determineTags(geo.textureName, geo.contentFlags, geo.surfaceFlags);
+				var textureIndex = textureNames.indexOf(geo.textureName);
+				if (textureIndex == -1) {
+					textureIndex = textureNames.length;
+					textureNames.push(geo.textureName);
+				}
 				for (tag in tags) {
 					var geometry:Geometry = geometries.get(tag);
 					if (geometry == null) {
@@ -55,11 +63,13 @@ class SolidDefinition implements Definition {
 							normals: [],
 							tangents: [],
 							uvs: [],
-							indices: []
+							indices: [],
+							textureSet: 0
 						};
 						geometries.set(tag, geometry);
 						indexOffsets.set(geometry, 0);
 					}
+					geometry.textureSet = (geometry.textureSet & ~(1 << textureIndex)) | (1 << textureIndex);
 
 					var indexOffset = indexOffsets.get(geometry);
 					for (v in geo.vertices) {
