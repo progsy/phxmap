@@ -2,16 +2,12 @@ package phxmap.schema;
 
 class Graph {
 	var definitions:Map<Int, Definition> = [];
-	var groups:Map<String, GroupDefinition> = [];
+	var names:Map<String, Definition> = [];
 
 	public function new() {}
 
-	public inline function getDefinition(id:Int):Null<Definition> {
-		return definitions.get(id);
-	}
-
-	public inline function getGroupDefinition(name:String):Null<GroupDefinition> {
-		return groups.get(name);
+	public inline function findByName<T:Definition & NamedDefinition>(name:String):T {
+		return cast names.get(name);
 	}
 
 	@:generic public function find<T:Definition>(cls:Class<T>, ?filter:(T) -> Bool):T {

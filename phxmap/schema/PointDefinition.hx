@@ -1,8 +1,9 @@
 package phxmap.schema;
 
 @:point @:hide
-class PointDefinition implements Definition {
+class PointDefinition implements NamedDefinition {
 	public var id:Int;
+	public var name:String;
 	public var group:GroupDefinition;
 	@:aa("origin", ' ', 0) @:f(Settings.scale) public var x:Float;
 	@:aa("origin", ' ', 1) @:f(#if (heaps || phxmap.lefthanded) Settings.scaleInverse #else Settings.scale #end) public var y:Float;

@@ -545,23 +545,27 @@ class Generator {
 									var entity = mapData.entities[i];
 									var definition:phxmap.schema.Definition = null;
 									var className = entity.properties.get("classname");
-									var tbType = entity.properties.get("_tb_type");
-									var tbId = Std.parseInt(entity.properties.get("_tb_id"));
-									var tbGroup = Std.parseInt(entity.properties.get("_tb_group"));
+									var internalName = entity.properties.get("name") ?? entity.properties.get("_tb_name");
+									var internalType = entity.properties.get("_tb_type");
+									var internalId = Std.parseInt(entity.properties.get("_tb_id"));
+									var internalGroup = Std.parseInt(entity.properties.get("_tb_group"));
 									$b{exprs};
 									if (definition != null) {
-										definition.id = nextId++;
 										definition.load(mapData, i);
-										graph.definitions.set(definition.id, definition);
-										if (tbId != null) {
-											internalIds.set(tbId, definition.id);
+										graph.definitions.set(++nextId, definition);
+										if (internalId != null) {
+											internalIds.set(internalId, nextId);
 										}
-										if (tbGroup != null) {
-											spawnClassTbGroup.set(definition, tbGroup);
+										if (internalGroup != null) {
+											spawnClassTbGroup.set(definition, internalGroup);
 										}
-										var groupDefinition = Std.downcast(definition, phxmap.schema.GroupDefinition);
-										if (groupDefinition != null) {
-											graph.groups.set(groupDefinition.name, groupDefinition);
+										var namedDefinition = Std.downcast(definition, phxmap.schema.NamedDefinition);
+										if (namedDefinition != null && internalName != null) {
+											if(graph.names.exists(internalName)) {
+												trace('Multiple definitions have the name $internalName');
+											}
+											namedDefinition.name = internalName;
+											graph.names.set(internalName, namedDefinition);
 										}
 									}
 								}
