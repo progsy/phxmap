@@ -59,4 +59,5 @@ This outputs the following FGD:
 	]
 ]
 ```
+When loading any map we create an instance of PlayerDefinition for each corresponding map entity. You don't need to serialize the properties yourself, the process is automated.
 **Always** make sure to include the package(s) containing your definition classes as done [here](sample/build_hl.hxml), otherwise some classes might get omitted.
