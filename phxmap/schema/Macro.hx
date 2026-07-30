@@ -30,29 +30,34 @@ class FGD {
 			}
 			var cls = type.getClass();
 			var followedCls:ClassType = cls;
-			var isSpawnClass = false;
-			var spawnClassKind:String;
+			var definitionKind:String;
 
 			if (cls == null) {
 				continue;
 			}
 
-			while (!isSpawnClass) {
+			var shouldBreak = false;
+			while (!shouldBreak) {
 				if (followedCls == null) {
 					break;
 				}
 
-				if (spawnClassKind == null) {
-					if (followedCls.meta.has(":point")) {
-						spawnClassKind = "PointClass";
-					} else if (followedCls.meta.has(":solid")) {
-						spawnClassKind = "SolidClass";
+				if (definitionKind == null) {
+					if (followedCls.name == "PointDefinition") {
+						definitionKind = "PointClass";
+						shouldBreak = true;
+					} else if (followedCls.name == "SolidDefinition") {
+						definitionKind = "SolidClass";
+						shouldBreak = true;
 					}
 				}
 
 				for (int in followedCls.interfaces) {
 					if (int.t.get().name == "Definition") {
-						isSpawnClass = true;
+						if (definitionKind == null) {
+							definitionKind = "baseclass";
+						}
+						shouldBreak = true;
 						break;
 					}
 				}
@@ -60,15 +65,11 @@ class FGD {
 				if (followedCls.superClass != null) {
 					followedCls = followedCls.superClass.t.get();
 				} else {
-					break;
+					shouldBreak = true;
 				}
 			}
 
-			if (spawnClassKind == null) {
-				spawnClassKind = "baseclass";
-			}
-
-			if (!isSpawnClass) {
+			if (definitionKind == null) {
 				continue;
 			}
 
@@ -112,8 +113,7 @@ class FGD {
 									marked = true;
 								} else if (m.name == ":n") {
 									fgdName = m.params[0].getValue();
-								}
-								else if(m.name == ":h") {
+								} else if (m.name == ":h") {
 									hide = true;
 								}
 							}
@@ -199,7 +199,7 @@ class FGD {
 					}
 					writeProps(t);
 
-					var head = '@$spawnClassKind${classColor != null ? ' color($classColor)' : ''}${classSize != null ? ' size($classSize)' : ''} = $className: ${t.doc ?? '""'}';
+					var head = '@$definitionKind${classColor != null ? ' color($classColor)' : ''}${classSize != null ? ' size($classSize)' : ''} = $className: ${t.doc ?? '""'}';
 					classDefinitions.push('$head\n[\n\t${props.join("\n\t")}\n]\n');
 				default:
 			}
@@ -536,47 +536,49 @@ class Generator {
 				case FFun(fn):
 					if (f.name == "generate") {
 						fn.expr = macro {
+							if (graph == null) {
+								throw 'Graph must not be null';
+								return;
+							}
 							${fn.expr};
-							if (graph != null) {
-								var nextId = 1;
-								var internalIds:Map<Int, Int> = [];
-								var spawnClassTbGroup:Map<phxmap.schema.Definition, Int> = [];
-								for (i in 0...mapData.entities.length) {
-									var entity = mapData.entities[i];
-									var definition:phxmap.schema.Definition = null;
-									var className = entity.properties.get("classname");
-									var internalName = entity.properties.get("name") ?? entity.properties.get("_tb_name");
-									var internalType = entity.properties.get("_tb_type");
-									var internalId = Std.parseInt(entity.properties.get("_tb_id"));
-									var internalGroup = Std.parseInt(entity.properties.get("_tb_group"));
-									$b{exprs};
-									if (definition != null) {
-										definition.load(mapData, i);
-										graph.definitions.set(++nextId, definition);
-										if (internalId != null) {
-											internalIds.set(internalId, nextId);
+							var nextId = 1;
+							var internalIds:Map<Int, Int> = [];
+							var definitionTbGroup:Map<phxmap.schema.Definition, Int> = [];
+							for (i in 0...mapData.entities.length) {
+								var entity = mapData.entities[i];
+								var definition:phxmap.schema.Definition = null;
+								var className = entity.properties.get("classname");
+								var internalName = entity.properties.get("name") ?? entity.properties.get("_tb_name");
+								var internalType = entity.properties.get("_tb_type");
+								var internalId = Std.parseInt(entity.properties.get("_tb_id"));
+								var internalGroup = Std.parseInt(entity.properties.get("_tb_group"));
+								$b{exprs};
+								if (definition != null) {
+									definition.load(mapData, i);
+									graph.definitions.set(++nextId, definition);
+									if (internalId != null) {
+										internalIds.set(internalId, nextId);
+									}
+									if (internalGroup != null) {
+										definitionTbGroup.set(definition, internalGroup);
+									}
+									var namedDefinition = Std.downcast(definition, phxmap.schema.NamedDefinition);
+									if (namedDefinition != null && internalName != null) {
+										if (graph.names.exists(internalName)) {
+											trace('Multiple definitions have the name $internalName');
 										}
-										if (internalGroup != null) {
-											spawnClassTbGroup.set(definition, internalGroup);
-										}
-										var namedDefinition = Std.downcast(definition, phxmap.schema.NamedDefinition);
-										if (namedDefinition != null && internalName != null) {
-											if(graph.names.exists(internalName)) {
-												trace('Multiple definitions have the name $internalName');
-											}
-											namedDefinition.name = internalName;
-											graph.names.set(internalName, namedDefinition);
-										}
+										namedDefinition.name = internalName;
+										graph.names.set(internalName, namedDefinition);
 									}
 								}
-								for (definition in graph.definitions) {
-									var pointDefinition = Std.downcast(definition, phxmap.schema.PointDefinition);
-									var solidDefinition = Std.downcast(definition, phxmap.schema.SolidDefinition);
-									if (pointDefinition != null) {
-										pointDefinition.group = cast graph.definitions.get(internalIds.get(spawnClassTbGroup.get(definition)));
-									} else if (solidDefinition != null) {
-										solidDefinition.group = cast graph.definitions.get(internalIds.get(spawnClassTbGroup.get(definition)));
-									}
+							}
+							for (definition in graph.definitions) {
+								var pointDefinition = Std.downcast(definition, phxmap.schema.PointDefinition);
+								var solidDefinition = Std.downcast(definition, phxmap.schema.SolidDefinition);
+								if (pointDefinition != null) {
+									pointDefinition.group = cast graph.definitions.get(internalIds.get(definitionTbGroup.get(definition)));
+								} else if (solidDefinition != null) {
+									solidDefinition.group = cast graph.definitions.get(internalIds.get(definitionTbGroup.get(definition)));
 								}
 							}
 						};
