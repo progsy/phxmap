@@ -7,11 +7,11 @@ class Graph {
 
 	public function new() {}
 
-	public inline function findByName<T:Definition & NamedDefinition>(name:String):T {
+	@:generic public inline function findByName<T:Definition & NamedDefinition>(name:String):T {
 		return cast names.get(name);
 	}
 
-	@:generic public function find<T:Definition>(cls:Class<T>, ?base:T, ?filter:(T) -> Bool):T {
+	@:generic public function find<T:Definition>(cls:Class<T>, ?filter:(T) -> Bool):T {
 		var definition:T = null;
 		if (filter == null) {
 			for (d in definitions) {
