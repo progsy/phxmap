@@ -1,7 +1,8 @@
 package phxmap.schema;
 
 class Graph {
-	var definitions:Map<Int, Definition> = [];
+	var nextId:Int = 1;
+	var definitions:Array<Definition> = [];
 	var names:Map<String, Definition> = [];
 
 	public function new() {}
@@ -10,7 +11,7 @@ class Graph {
 		return cast names.get(name);
 	}
 
-	@:generic public function find<T:Definition>(cls:Class<T>, ?filter:(T) -> Bool):T {
+	@:generic public function find<T:Definition>(cls:Class<T>, ?base:T, ?filter:(T) -> Bool):T {
 		var definition:T = null;
 		if (filter == null) {
 			for (d in definitions) {

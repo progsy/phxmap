@@ -16,8 +16,8 @@ typedef Geometry = {
 class SolidDefinition implements Definition {
 	public static inline final DEFAULT_TAG:String = "default";
 
-	public var id:Int;
-	public var group:GroupDefinition;
+	public var id(default, null):Int;
+	public var group(default, null):GroupDefinition;
 	@:c(mapData.entities[index].center.x) @:f(Settings.scale) public var x:Float;
 	@:c(mapData.entities[index].center.y) @:f(#if (heaps || phxmap.lefthanded) Settings.scaleInverse #else Settings.scale #end) public var y:Float;
 	@:c(mapData.entities[index].center.z) @:f(Settings.scale) public var z:Float;

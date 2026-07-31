@@ -540,9 +540,10 @@ class Generator {
 								throw 'Graph must not be null';
 								return;
 							}
+							graph.definitions.resize(0);
+							graph.names.clear();
 							${fn.expr};
-							var nextId = 1;
-							var internalIds:Map<Int, Int> = [];
+							var internalIdsToIndices:Map<Int, Int> = [];
 							var definitionTbGroup:Map<phxmap.schema.Definition, Int> = [];
 							for (i in 0...mapData.entities.length) {
 								var entity = mapData.entities[i];
@@ -554,10 +555,8 @@ class Generator {
 								var internalGroup = Std.parseInt(entity.properties.get("_tb_group"));
 								$b{exprs};
 								if (definition != null) {
-									definition.load(mapData, i);
-									graph.definitions.set(++nextId, definition);
 									if (internalId != null) {
-										internalIds.set(internalId, nextId);
+										internalIdsToIndices.set(internalId, graph.definitions.length);
 									}
 									if (internalGroup != null) {
 										definitionTbGroup.set(definition, internalGroup);
@@ -570,15 +569,18 @@ class Generator {
 										namedDefinition.name = internalName;
 										graph.names.set(internalName, namedDefinition);
 									}
+									definition.id = graph.nextId++;
+									definition.load(mapData, i);
+									graph.definitions.push(definition);
 								}
 							}
 							for (definition in graph.definitions) {
 								var pointDefinition = Std.downcast(definition, phxmap.schema.PointDefinition);
 								var solidDefinition = Std.downcast(definition, phxmap.schema.SolidDefinition);
 								if (pointDefinition != null) {
-									pointDefinition.group = cast graph.definitions.get(internalIds.get(definitionTbGroup.get(definition)));
+									pointDefinition.group = cast graph.definitions[internalIdsToIndices.get(definitionTbGroup.get(definition))];
 								} else if (solidDefinition != null) {
-									solidDefinition.group = cast graph.definitions.get(internalIds.get(definitionTbGroup.get(definition)));
+									solidDefinition.group = cast graph.definitions[internalIdsToIndices.get(definitionTbGroup.get(definition))];
 								}
 							}
 						};
