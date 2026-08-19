@@ -578,9 +578,13 @@ class Generator {
 								var pointDefinition = Std.downcast(definition, phxmap.schema.PointDefinition);
 								var solidDefinition = Std.downcast(definition, phxmap.schema.SolidDefinition);
 								if (pointDefinition != null) {
-									pointDefinition.group = cast graph.definitions[internalIdsToIndices.get(definitionTbGroup.get(definition))];
+									var group = Std.downcast(graph.definitions[internalIdsToIndices.get(definitionTbGroup.get(definition))],
+										phxmap.schema.GroupDefinition);
+									pointDefinition.group = group ?? pointDefinition.group;
 								} else if (solidDefinition != null) {
-									solidDefinition.group = cast graph.definitions[internalIdsToIndices.get(definitionTbGroup.get(definition))];
+									var group = Std.downcast(graph.definitions[internalIdsToIndices.get(definitionTbGroup.get(definition))],
+										phxmap.schema.GroupDefinition);
+									solidDefinition.group = group ?? solidDefinition.group;
 								}
 							}
 						};
